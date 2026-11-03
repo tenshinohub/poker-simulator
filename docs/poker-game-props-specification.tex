@@ -1,0 +1,1031 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+  \usepackage{xeCJK}
+  \setCJKmainfont{Yu Gothic}
+  \setCJKsansfont{Yu Gothic}
+  \setCJKmonofont{Yu Gothic}
+  %\setmonofont{Consolas}
+  \setmonofont{Yu Gothic}
+  \setCJKmonofont{Yu Gothic}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{japanese}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={ポーカーシミュレーター仕様書},
+  pdflang={ja-JP},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{ポーカーシミュレーター仕様書}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Poker Game Props / ソースコード準拠版}
+\author{}
+\date{2026年11月3日}
+
+\begin{document}
+\maketitle
+
+POKER GAME PROPS
+
+ソースコード準拠版
+
+対象：poker-game-props.zip 作成日：2026年11月3日
+
+\section{文書の位置づけ}\label{ux6587ux66f8ux306eux4f4dux7f6eux3065ux3051}
+
+本書は、提供された poker-game-props.zip に含まれる Python
+エンジン、FastAPI サーバー、React + TypeScript
+フロントエンド、README、テストコードを確認して整理した実装仕様書である。ソースコードに存在する動作を記載し、設計上の推測や将来案を現行仕様として扱わない。
+
+対象アプリケーションは、ノーリミット・テキサスホールデムの学習・検証用シミュレーターである。ブラウザーUIで使用するチップはゲーム内の表示用カウンターであり、購入・換金・譲渡を行わない。
+
+記載上の区分：
+
+\begin{itemize}
+\item
+  実装仕様：現在のソースコードから確認できる機能・データ・処理。
+\item
+  制約・注意：実装から読み取れる制限、MVPとしての未対応事項。
+\item
+  テスト記載：テストファイルが存在することを示す。本文書作成時にテスト一式を実行したという意味ではない。
+\end{itemize}
+
+\section{1. システム概要}\label{ux30b7ux30b9ux30c6ux30e0ux6982ux8981}
+
+\subsection{1.1 構成}\label{ux69cbux6210}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+レイヤー
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+技術・モジュール
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+責務
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ドメイン & domain/cards.py, actions.py, models.py &
+カード、アクション、プレイヤー状態、判断コンテキスト、結果データ \\
+ゲームエンジン & engine/game.py, betting.py, hand\_evaluator.py, pots.py
+& 配札、ゲーム進行、合法手判定、ベット処理、役判定、ポット精算 \\
+プレイヤー & players/base.py, human.py, random\_agent.py, rule\_agent.py
+& 共通プレイヤー契約と各判断方式 \\
+実行制御 & runner/match.py & 複数ハンドの実行と最終スタック集計 \\
+保存・評価 & storage/hand\_history.py, evaluation/metrics.py &
+JSONL履歴保存、簡易成績集計 \\
+CLI & ui/cli.py & コマンドラインからのプレイヤー構成・対戦実行 \\
+Webバックエンド & web/api.py, web/session.py & HTTP
+API、セッション、AI進行、人間入力待ち、イベント配信 \\
+Webフロントエンド & frontend/src/main.tsx, style.css &
+テーブル表示、設定、アクション入力、結果表示 \\
+\end{longtable}
+
+\subsection{1.2 使用技術}\label{ux4f7fux7528ux6280ux8853}
+
+\begin{itemize}
+\item
+  Python 3.11 以上。
+\item
+  バックエンドAPI：FastAPI、Uvicorn（pyproject.toml の web
+  オプション）。
+\item
+  フロントエンド：React 18、TypeScript、Vite。
+\item
+  フロントエンドのAPI呼び出しは fetch を使用し、Vite開発サーバー経由で
+  /api をバックエンドへ転送する構成。
+\end{itemize}
+
+\subsection{1.3
+主な実行モード}\label{ux4e3bux306aux5b9fux884cux30e2ux30fcux30c9}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+モード
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+概要
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+CLI & human / rule / random
+のプレイヤーを指定して、複数ハンドを実行する。 \\
+ブラウザー & 人間1人とAI
+1～8人で1ハンドずつ進行する。人間の入力をHTTP経由で受け付ける。 \\
+\end{longtable}
+
+\section{2.
+ディレクトリ構成}\label{ux30c7ux30a3ux30ecux30afux30c8ux30eaux69cbux6210}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poker{-}game{-}props/}
+\NormalTok{├─ pyproject.toml}
+\NormalTok{├─ README.md}
+\NormalTok{├─ src/poker\_sim/}
+\NormalTok{│  ├─ domain/}
+\NormalTok{│  │  ├─ actions.py}
+\NormalTok{│  │  ├─ cards.py}
+\NormalTok{│  │  └─ models.py}
+\NormalTok{│  ├─ engine/}
+\NormalTok{│  │  ├─ game.py}
+\NormalTok{│  │  ├─ betting.py}
+\NormalTok{│  │  ├─ hand\_evaluator.py}
+\NormalTok{│  │  └─ pots.py}
+\NormalTok{│  ├─ players/}
+\NormalTok{│  │  ├─ base.py}
+\NormalTok{│  │  ├─ human.py}
+\NormalTok{│  │  ├─ random\_agent.py}
+\NormalTok{│  │  └─ rule\_agent.py}
+\NormalTok{│  ├─ runner/match.py}
+\NormalTok{│  ├─ storage/hand\_history.py}
+\NormalTok{│  ├─ evaluation/metrics.py}
+\NormalTok{│  ├─ ui/cli.py}
+\NormalTok{│  └─ web/}
+\NormalTok{│     ├─ api.py}
+\NormalTok{│     └─ session.py}
+\NormalTok{├─ frontend/}
+\NormalTok{│  ├─ package.json}
+\NormalTok{│  └─ src/}
+\NormalTok{│     ├─ main.tsx}
+\NormalTok{│     └─ style.css}
+\NormalTok{├─ tests/}
+\NormalTok{└─ tools/validate\_history.py}
+\end{Highlighting}
+\end{Shaded}
+
+ZIPには .venv と frontend/node\_modules
+も含まれている。これらは実行環境・依存パッケージであり、アプリケーションの主要な保守対象ソースではない。
+
+\section{3. ドメイン仕様}\label{ux30c9ux30e1ux30a4ux30f3ux4ed5ux69d8}
+
+\subsection{3.1 カード}\label{ux30abux30fcux30c9}
+
+\begin{itemize}
+\item
+  ランクは 2～A（内部値 2～14）、スートは c / d / h / s。
+\item
+  Card は rank と suit を持つ不変データクラス。parse() は
+  `As'、`Td'、`2c' のような2文字表記を受け付ける。
+\item
+  standard\_deck() は52枚の標準デッキを生成し、shuffled\_deck(rng)
+  は指定された random.Random でシャッフルする。
+\end{itemize}
+
+\subsection{3.2 アクション}\label{ux30a2ux30afux30b7ux30e7ux30f3}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Action.type & 意味 & amount \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+fold & フォールド & 指定不可 \\
+check & チェック & 指定不可 \\
+call & コール & 指定不可 \\
+bet & ベット & 正の整数。ストリート合計額 \\
+raise & レイズ & 正の整数。ストリート合計額 \\
+all\_in & スタック全額投入 & 指定不可 \\
+\end{longtable}
+
+重要：bet / raise の amount
+は追加投入額ではなく、そのストリートにおけるプレイヤーの合計ベット額（target）である。例：同一ストリートですでに20投入している場合、raise\_to(60)
+は追加40を投入して合計60にする。
+
+\subsection{3.3
+プレイヤー状態・判断情報}\label{ux30d7ux30ecux30a4ux30e4ux30fcux72b6ux614bux5224ux65adux60c5ux5831}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+型
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+主要フィールド
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+説明
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+PlayerState & player\_id, name, stack, seat, hole\_cards, folded,
+all\_in, street\_bet, hand\_contribution, starting\_stack &
+エンジン内部のプレイヤー状態 \\
+LegalActions & can\_fold, can\_check, can\_call, call\_amount, can\_bet,
+min\_bet\_to, can\_raise, min\_raise\_to, max\_raise\_to, can\_all\_in &
+現在の判断で可能なアクションと金額範囲 \\
+PlayerView & hand\_id, player\_id, street, position, hole\_cards,
+community\_cards, stack, pot, current\_bet, to\_call, legal\_actions,
+action\_history & プレイヤー判断用の観測情報 \\
+PlayerContext & hand\_id, player\_id, observation & decide()
+に渡すコンテキスト \\
+HandResult & winners, payouts, starting\_stacks, ending\_stacks,
+contributions, board, revealed\_hole\_cards, actions, pots, reason &
+ハンド終了時の結果 \\
+\end{longtable}
+
+PlayerView は各プレイヤーの判断用に生成され、hole\_cards
+には判断対象プレイヤー自身の手札が入る。ブラウザーのライブイベントでも、他プレイヤーの手札は配信しない。
+
+\section{4.
+プレイヤーインターフェイス}\label{ux30d7ux30ecux30a4ux30e4ux30fcux30a4ux30f3ux30bfux30fcux30d5ux30a7ux30a4ux30b9}
+
+\subsection{4.1
+共通プロトコル}\label{ux5171ux901aux30d7ux30edux30c8ux30b3ux30eb}
+
+players/base.py の Player Protocol は、name 属性と decide(context:
+PlayerContext) -\textgreater{} Action
+を要求する。ゲームエンジンはプレイヤー実装の decide()
+を呼び出し、返された Action を合法性検証後に適用する。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{class Player(Protocol):}
+\NormalTok{    name: str}
+\NormalTok{    def decide(self, context: PlayerContext) {-}\textgreater{} Action: ...}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{4.2
+組み込みプレイヤー}\label{ux7d44ux307fux8fbcux307fux30d7ux30ecux30a4ux30e4ux30fc}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+クラス
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+判断方式
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+補足
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+HumanCLIPlayer & 標準入力で fold / check / call / bet N / raise N /
+allin を受け付ける。 & CLI用。入力値の形式を検査して Action を返す。 \\
+RandomAgent & 合法手候補からランダムに選択する。 &
+seed指定可能。all-inを一定確率で選ぶ分岐あり。 \\
+RuleBasedAgent &
+プリフロップの簡易条件と、チェック可否・コール額などのルールで判断する。
+& 強い戦略を意図したものではないベースライン。 \\
+BrowserHumanPlayer & GameSession
+に判断待ちイベントを通知し、Queueから人間のActionを受け取る。 &
+ブラウザー用。 \\
+\end{longtable}
+
+\subsection{4.3
+AIのショーダウン判断}\label{aiux306eux30b7ux30e7ux30fcux30c0ux30a6ux30f3ux5224ux65ad}
+
+Game はプレイヤーモジュールに decide\_showdown(context)
+があれば、ショーダウンで負けたプレイヤーについて呼び出す。戻り値は
+`show' または `muck'。このメソッドは Player Protocol
+の必須要件ではない。
+
+\begin{itemize}
+\item
+  ポットを獲得したプレイヤーは必ず show。勝者が muck
+  を返すと例外になる。
+\item
+  負けたプレイヤーに decide\_showdown() がなければ既定値 show。
+\item
+  RandomAgent と RuleBasedAgent は、現在は勝者なら show、敗者なら muck
+  を返す。
+\item
+  公開判断は手札評価・ポット配分後に行われるため、muck
+  は勝敗やチップ配分を変更しない。
+\end{itemize}
+
+\section{5.
+ゲームエンジン仕様}\label{ux30b2ux30fcux30e0ux30a8ux30f3ux30b8ux30f3ux4ed5ux69d8}
+
+\subsection{5.1 GameConfig}\label{gameconfig}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+項目 & 既定値 & 制約 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+small\_blind & 5 & 1以上、big\_blind以下 \\
+big\_blind & 10 & small\_blind以上 \\
+starting\_stack & 1000 & 正の整数 \\
+max\_hands & 100 & 正の整数 \\
+max\_players & 9 & 2～9 \\
+\end{longtable}
+
+Game(players, config=None, seed=None)
+は2人以上、config.max\_players以下のプレイヤーを受け取る。プレイヤーIDは
+p1, p2 \ldots、seatは入力順の0始まりで付与される。
+
+\subsection{5.2 ハンド進行}\label{ux30cfux30f3ux30c9ux9032ux884c}
+
+HAND\_START → PREFLOP → FLOP → TURN → RIVER → SHOWDOWN → SETTLEMENT
+
+\begin{itemize}
+\item
+  各ハンド開始時にスタックが正のプレイヤーを参加対象とし、ボタンを次のアクティブシートへ移動する。
+\item
+  各プレイヤーに2枚ずつ配札し、SB /
+  BBを投入する。ヘッズアップではボタンがSB、それ以外ではボタンの次がSB、その次がBB。
+\item
+  プリフロップはBBの次からアクション。ポストフロップはボタンの次からアクション。
+\item
+  フロップ3枚、ターン1枚、リバー1枚を配る。各ストリートでバーンカードを1枚捨てる。
+\item
+  全員フォールドで1人だけ残った場合は、そのプレイヤーが全貢献額を獲得してハンドを終了する。
+\item
+  残存プレイヤーが全員オールイン等で追加ベットできない場合、残りのボードを自動で配ってショーダウンへ進む。
+\end{itemize}
+
+\subsection{5.3 ポジション}\label{ux30ddux30b8ux30b7ux30e7ux30f3}
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+人数 & ポジション順（ボタンから） \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+2 & BTN/SB, BB \\
+3 & BTN, SB, BB \\
+4 & BTN, SB, BB, CO \\
+5 & BTN, SB, BB, UTG, CO \\
+6 & BTN, SB, BB, UTG, MP, CO \\
+7 & BTN, SB, BB, UTG, MP, HJ, CO \\
+8 & BTN, SB, BB, UTG, UTG+1, MP, HJ, CO \\
+9 & BTN, SB, BB, UTG, UTG+1, MP, LJ, HJ, CO \\
+\end{longtable}
+
+ブラウザーセッションでは初回ハンドの人間位置を、MPが存在する人数ではMPに設定する。MPがない人数では最初のポジション（通常BTN）に設定する。以降のボタン移動はエンジンの通常進行に従う。
+
+\subsection{5.4
+ベッティング規則}\label{ux30d9ux30c3ux30c6ux30a3ux30f3ux30b0ux898fux5247}
+
+\begin{itemize}
+\item
+  BettingRound が
+  current\_bet、last\_full\_raise、acted\_since\_full\_raise、last\_aggressor\_id
+  等を保持する。
+\item
+  to\_call = max(0, current\_bet - street\_bet)。最大投入先は
+  street\_bet + stack。
+\item
+  ベット未発生時は bet。ベット発生中は
+  raise。betの最低額はBB。通常レイズの最低投入先は current\_bet +
+  last\_full\_raise。
+\item
+  最低レイズ額未満でも、スタック全額となるショートオールインは許可される。
+\item
+  レイズ権は、未アクションか、最後に応答したベット水準からフルレイズ相当以上に上昇したかで管理する。
+\item
+  アクション終了後、最後のアグレッサーの未コール分を
+  refund\_uncalled\_bet()
+  で返金する。返金はスタック、ストリートベット、ハンド貢献額、current\_betに反映される。
+\end{itemize}
+
+エンジンはプレイヤーが返したアクションを適用時に検証する。不正なアクションの場合、合法なチェック、コール、フォールドの順でフォールバックを試し、元の要求と
+invalid\_reason を履歴に記録する。
+
+\subsection{5.5 ハンド評価}\label{ux30cfux30f3ux30c9ux8a55ux4fa1}
+
+evaluate\_five() は5枚、evaluate\_hand()
+は5～7枚のカードを受け付ける。5～7枚の場合は5枚組み合わせをすべて評価し、最も強いランクタプルを返す。タプルは辞書順比較で強さを比較する。
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+カテゴリ値 & 役 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+8 & ストレートフラッシュ（ロイヤルフラッシュを含む） \\
+7 & フォーカード \\
+6 & フルハウス \\
+5 & フラッシュ \\
+4 & ストレート \\
+3 & スリーカード \\
+2 & ツーペア \\
+1 & ワンペア \\
+0 & ハイカード \\
+\end{longtable}
+
+A-2-3-4-5 のホイールストレートを評価対象に含む。重複カードは
+ValueError。
+
+\subsection{5.6
+ポット・サイドポット}\label{ux30ddux30c3ux30c8ux30b5ux30a4ux30c9ux30ddux30c3ux30c8}
+
+\begin{itemize}
+\item
+  build\_side\_pots() は各プレイヤーの hand\_contribution
+  を段階ごとに分割し、フォールドしたプレイヤーの投入チップもポット総額に含める。
+\item
+  各 Pot は amount と
+  eligible（そのポットを獲得できるプレイヤーID）を保持する。
+\item
+  validate\_pots()
+  は金額が正であること、eligibleが空でないこと、eligibleに重複がないことを検査する。
+\item
+  distribute\_pots()
+  はポットごとに対象プレイヤーのハンドランクを比較し、最上位のプレイヤーを勝者にする。
+\item
+  split\_amount() は勝者間で均等分配し、割り切れないチップは seat\_order
+  の先頭から1枚ずつ配る。
+\end{itemize}
+
+\subsection{5.7
+ショーダウンと公開情報}\label{ux30b7ux30e7ux30fcux30c0ux30a6ux30f3ux3068ux516cux958bux60c5ux5831}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  残っているプレイヤーの手札とボードで役を評価する。
+\item
+  メインポット・サイドポットごとに勝者と配当を決め、スタックに反映する。
+\item
+  ポット獲得者は公開必須。敗者は show / muck を選択する。
+\item
+  show のプレイヤーだけ revealed\_hole\_cards に含める。
+\end{enumerate}
+
+フォールド勝ち（everyone\_else\_folded）のハンドは通常ショーダウンを行わず、手札公開情報も生成しない。
+
+\section{6. CLI仕様}\label{cliux4ed5ux69d8}
+
+\subsection{6.1 起動}\label{ux8d77ux52d5}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{python {-}m pip install {-}e .}
+\NormalTok{poker{-}sim {-}{-}players human,rule,random {-}{-}hands 10 {-}{-}seed 123}
+
+\NormalTok{\# パッケージをインストールしない場合}
+\NormalTok{PYTHONPATH=src python {-}m poker\_sim.ui.cli {-}{-}players human,rule {-}{-}hands 1}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{6.2 引数}\label{ux5f15ux6570}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+引数 & 既定値 & 説明 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+--players & rule,random & human / rule / random をカンマ区切りで指定 \\
+--hands & 10 & 最大ハンド数 \\
+--seed & 123 & ゲーム乱数シード \\
+--stack & 1000 & 初期スタック \\
+--small-blind & 5 & SB \\
+--big-blind & 10 & BB \\
+--history & hand\_history.jsonl & JSONL履歴の出力先 \\
+\end{longtable}
+
+CLIは対戦終了後に summarize\_match()
+の集計結果をJSON表示し、全ハンド履歴をJSON Lines形式で書き出す。net\_bb
+と bb\_per\_100
+の計算ではBB=10を使用している実装であるため、BB引数を変更した場合もこの集計式が自動追従するとは限らない。
+
+\section{7.
+ブラウザーUI仕様}\label{ux30d6ux30e9ux30a6ux30b6ux30fcuiux4ed5ux69d8}
+
+\subsection{7.1
+セッション設定画面}\label{ux30bbux30c3ux30b7ux30e7ux30f3ux8a2dux5b9aux753bux9762}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+設定項目 & 初期値 & UI/API上の範囲 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+プレイヤー人数 & 6人 & 2～9人。人間1人 + AI残り \\
+初期チップ & 1000 & UI/APIでは100～100000 \\
+SB & 5 & APIでは1～10000 \\
+BB & 10 & APIでは1～20000。SB以上であること \\
+\end{longtable}
+
+\subsection{7.2
+テーブル画面}\label{ux30c6ux30fcux30d6ux30ebux753bux9762}
+
+\begin{itemize}
+\item
+  人間プレイヤーはテーブル下部に固定表示する。AIはseat番号に応じて円周上に配置する。
+\item
+  各プレイヤーに名前、ポジション、ディーラーマーカー、スタック、ストリートベット、状態、直近アクションを表示する。
+\item
+  中央にコミュニティカード、ポット表示、ストリート表示を置く。
+\item
+  他プレイヤーの手札はライブ中に表示しない。ハンド終了時は
+  revealed\_hole\_cards に含まれる手札のみ表示する。
+\item
+  ゲーム情報欄にハンド番号、ストリート、現在ベット、人間のポジション、ボタン位置、アクション済みポジションを表示する。
+\end{itemize}
+
+\subsection{7.3
+人間のアクション操作}\label{ux4ebaux9593ux306eux30a2ux30afux30b7ux30e7ux30f3ux64cdux4f5c}
+
+\begin{itemize}
+\item
+  fold / check / call / all-in のボタンを表示し、legal\_actions
+  に応じて有効・無効を切り替える。
+\item
+  bet / raise
+  は金額プリセット（最小・中間・大きめ・最大）、数値入力、スライダーで指定する。
+\item
+  金額は合法範囲に制限され、整数でなければ送信できない。
+\item
+  金額入力の意味はエンジン仕様と同じく、ストリートの合計投入先。
+\end{itemize}
+
+\subsection{7.4
+ショーダウン選択}\label{ux30b7ux30e7ux30fcux30c0ux30a6ux30f3ux9078ux629e}
+
+人間がショーダウンで敗者となった場合、ショーする /
+マックするの選択UIを表示する。勝敗と配当は選択前に確定済み。選択中もボードを保持するフロントエンド実装となっている。
+
+\section{8. Web API仕様}\label{web-apiux4ed5ux69d8}
+
+APIのベースパスは /api。FastAPIアプリケーション名は Poker Learning
+Table、バージョンは0.1.0。
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Method / Path
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+用途
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+入力・出力
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+GET /api/health & 稼働確認 & \{status: `ok'\} \\
+POST /api/sessions & セッション作成 & CreateSessionを受け取り
+session\_id / player\_count を返す \\
+GET /api/sessions/\{session\_id\}/events?timeout=15.0 & イベント取得 &
+キューから次のイベント。timeoutは0.1～25.0秒に制限 \\
+POST /api/sessions/\{session\_id\}/actions & 人間アクション送信 &
+type、必要に応じ amount。成功時 \{accepted: true\} \\
+POST /api/sessions/\{session\_id\}/showdown-decision & 公開判断送信 &
+decision=`show' または `muck' \\
+POST /api/sessions/\{session\_id\}/next-hand & 次ハンド開始 &
+次のハンド進行を許可 \\
+\end{longtable}
+
+\subsection{8.1
+セッション作成リクエスト}\label{ux30bbux30c3ux30b7ux30e7ux30f3ux4f5cux6210ux30eaux30afux30a8ux30b9ux30c8}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\{}
+\NormalTok{  "player\_count": 6,}
+\NormalTok{  "starting\_stack": 1000,}
+\NormalTok{  "small\_blind": 5,}
+\NormalTok{  "big\_blind": 10,}
+\NormalTok{  "seed": 123}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+seedは省略可能。player\_countは2～9、starting\_stackは100～100000、small\_blindは1～10000、big\_blindは1～20000。big\_blindはsmall\_blind以上でなければ422。
+
+\subsection{8.2
+アクションリクエスト}\label{ux30a2ux30afux30b7ux30e7ux30f3ux30eaux30afux30a8ux30b9ux30c8}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// 金額を伴わないアクション}
+\NormalTok{\{ "type": "fold" \}}
+\NormalTok{\{ "type": "check" \}}
+\NormalTok{\{ "type": "call" \}}
+\NormalTok{\{ "type": "all\_in" \}}
+
+\NormalTok{// 金額を伴うアクション}
+\NormalTok{\{ "type": "bet", "amount": 40 \}}
+\NormalTok{\{ "type": "raise", "amount": 80 \}}
+\end{Highlighting}
+\end{Shaded}
+
+amountは整数である必要がある。API層でアクション種別と型を検査し、実際の合法性・スタック上限・最低ベット等はエンジン側で検証する。
+
+\subsection{8.3
+イベント形式}\label{ux30a4ux30d9ux30f3ux30c8ux5f62ux5f0f}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+主要フィールド
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+用途
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+your\_turn & session\_id, hand\_id, street, human\_player\_id,
+button\_seat, human\_position, hole\_cards, board, players, pot,
+current\_bet, to\_call, legal\_actions, action\_history &
+人間の判断要求。自分の手札と公開情報、合法アクションを含む。 \\
+showdown\_decision & session\_id, hand\_id, human\_player\_id,
+human\_name, hole\_cards, board, hand\_rank, message & 人間のショー /
+マック選択要求。 \\
+hand\_complete & hand\_id, winners, winner\_names, payouts,
+ending\_stacks, players, human\_player\_id, human\_position,
+hole\_cards, pot, board, revealed\_hole\_cards, reason & ハンド結果。 \\
+game\_over & players（player\_id, name, stack） &
+残りスタック保有者が2人未満となったときの終了通知。 \\
+waiting & session\_id & 指定時間内にイベントがない場合の応答。 \\
+error & session\_id, message & ゲームスレッド内で例外が発生した場合。 \\
+\end{longtable}
+
+\subsection{8.4
+Playerスナップショット}\label{playerux30b9ux30caux30c3ux30d7ux30b7ux30e7ux30c3ux30c8}
+
+players配列の各要素は player\_id, name, seat, position, is\_button,
+stack, street\_bet, folded, all\_in, is\_human, action\_status,
+last\_action を持つ。action\_statusには YOUR TURN / ACTED / WAITING /
+BLIND / FOLD / ALL IN / HAND COMPLETE 等が使用される。
+
+\subsection{8.5 HTTPエラー}\label{httpux30a8ux30e9ux30fc}
+
+\begin{itemize}
+\item
+  存在しないsession\_idは404。
+\item
+  入力値の範囲違反、ブラインド関係の不整合、未知アクション、無効なショーダウン判断等は主に422。
+\item
+  イベント取得はロングポーリング方式であり、WebSocketは使用していない。
+\end{itemize}
+
+\section{9.
+セッションとスレッド処理}\label{ux30bbux30c3ux30b7ux30e7ux30f3ux3068ux30b9ux30ecux30c3ux30c9ux51e6ux7406}
+
+\begin{itemize}
+\item
+  GameSessionはUUIDのセッションID、イベントQueue、アクションQueue、ショーダウン判断Queue、次ハンド待機Eventを持つ。
+\item
+  セッション生成時に人間プレイヤー1人と、RuleBasedAgent /
+  RandomAgentを交互に生成する。
+\item
+  ゲーム実行用daemon
+  threadがハンドを進め、人間の判断箇所でQueueから入力が来るまで待つ。
+\item
+  ハンド完了後、次ハンド開始APIが呼ばれるまで待機する。
+\item
+  イベント取得APIはQueueからイベントを1件取り出す。タイムアウト時は
+  waiting を返す。
+\end{itemize}
+
+現行実装ではセッションをプロセス内の辞書 SESSIONS
+に保持する。永続化や複数ワーカープロセス間の共有は実装されていない。
+
+\section{10. 履歴・評価}\label{ux5c65ux6b74ux8a55ux4fa1}
+
+\subsection{10.1 ハンド履歴}\label{ux30cfux30f3ux30c9ux5c65ux6b74}
+
+Game.history はハンド単位の辞書を保持する。主な項目は hand\_id, winners,
+payouts, starting\_stacks, ending\_stacks, contributions, board,
+revealed\_hole\_cards, actions, pots, reason。write\_jsonl()
+は1ハンド1行のJSON Lines形式で保存する。
+
+\subsection{10.2
+アクション履歴}\label{ux30a2ux30afux30b7ux30e7ux30f3ux5c65ux6b74}
+
+通常アクションには player\_id, street, action, amount,
+stack\_before/after, street\_bet\_before/after,
+current\_bet\_before/after, to\_call\_before, legal\_before
+が記録される。不正要求がフォールバックされた場合は requested\_action,
+invalid\_reason, fallback が追加される。未コール分返金は
+event=`refund\_uncalled\_bet' の別レコードとして状態遷移を記録する。
+
+\subsection{10.3 成績集計}\label{ux6210ux7e3eux96c6ux8a08}
+
+summarize\_match() は hands\_played, final\_stacks, net\_results,
+net\_bb, bb\_per\_100 を返す。現在の実装では net\_bb
+の算出に10をBB値として使用する。
+
+\section{11. 起動・利用手順}\label{ux8d77ux52d5ux5229ux7528ux624bux9806}
+
+\subsection{11.1 Python環境}\label{pythonux74b0ux5883}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{python {-}m venv .venv}
+\NormalTok{\# Windows PowerShell}
+\NormalTok{.venv\textbackslash{}\textbackslash{}Scripts\textbackslash{}\textbackslash{}Activate.ps1}
+\NormalTok{\# Linux / WSL}
+\NormalTok{source .venv/bin/activate}
+\NormalTok{python {-}m pip install {-}{-}upgrade pip}
+\NormalTok{python {-}m pip install {-}e ".[web]"}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{11.2
+バックエンド}\label{ux30d0ux30c3ux30afux30a8ux30f3ux30c9}
+
+\section{プロジェクトルートで実行}\label{ux30d7ux30edux30b8ux30a7ux30afux30c8ux30ebux30fcux30c8ux3067ux5b9fux884c}
+
+PYTHONPATH=src python -m uvicorn poker\_sim.web.api:app --reload --port
+8000
+
+\subsection{11.3
+フロントエンド}\label{ux30d5ux30edux30f3ux30c8ux30a8ux30f3ux30c9}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cd frontend}
+\NormalTok{npm install}
+\NormalTok{npm run dev}
+\end{Highlighting}
+\end{Shaded}
+
+ブラウザーで http://localhost:5173 を開く。Vite開発サーバーは /api
+リクエストをポート8000のFastAPIへ転送する。
+
+\subsection{11.4 ビルド}\label{ux30d3ux30ebux30c9}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cd frontend}
+\NormalTok{npm run build}
+\end{Highlighting}
+\end{Shaded}
+
+frontend/dist/index.html
+が存在する場合、FastAPIアプリはそのディレクトリを静的フロントエンドとしてマウントする。
+
+\section{12. テスト・検証}\label{ux30c6ux30b9ux30c8ux691cux8a3c}
+
+tests/ には、少なくとも以下の観点を対象とするテストファイルが含まれる。
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+テストファイル
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+主な対象
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+test\_betting.py & ベッティングの合法性 \\
+test\_betting\_loop\_integration.py & ベッティングループ統合 \\
+test\_betting\_properties.py & ベッティング状態の性質 \\
+test\_betting\_state\_transitions.py & アクションによる状態遷移 \\
+test\_blind\_raise\_rules.py & ブラインド・レイズ規則 \\
+test\_game.py / test\_game\_properties.py & ゲーム進行・チップ状態 \\
+test\_hand\_evaluator.py / extended / oracle &
+役判定、境界ケース、独立評価との比較 \\
+test\_pots.py / test\_pot\_awards.py / test\_pot\_boundaries.py &
+サイドポット、配当、境界条件 \\
+test\_refund\_side\_pots.py & 未コール返金とサイドポット \\
+test\_web\_session.py & ブラウザーセッション、イベント、入力検証 \\
+test\_browser\_positions.py & 人数別ポジションと初回人間位置 \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{python {-}m unittest discover {-}s tests {-}v}
+\end{Highlighting}
+\end{Shaded}
+
+tools/validate\_history.py
+はJSONL履歴を読み、チップ総量、プレイヤーID、アクション前後の状態、合法手、貢献額とポット総額、ポットの対象者、配当合計等を独立ロジックで検査する。
+
+python tools/validate\_history.py hand\_history.jsonl
+
+本書作成時点では、ZIP内のテストファイルを確認したが、全テストの再実行結果は取得していない。したがってテスト成功を保証する記載は行わない。
+
+\section{13.
+現行実装の制約・注意点}\label{ux73feux884cux5b9fux88c5ux306eux5236ux7d04ux6ce8ux610fux70b9}
+
+\begin{itemize}
+\item
+  ブラウザー版は1ハンド単位で進行し、ハンド終了後に next-hand API
+  で次ハンドを開始する。
+\item
+  ブラウザー版のAI構成は RuleBasedAgent と RandomAgent
+  の交互配置で固定されており、UIからAI種類や個別戦略を設定する機能はない。
+\item
+  Player Protocolは同期 decide()
+  を前提とし、現状は同一プロセス内で実行する。非同期・外部プロセス接続用アダプターは未実装。
+\item
+  WebイベントはQueue +
+  HTTPロングポーリングであり、WebSocketやサーバー送信イベントは未使用。
+\item
+  セッション管理はプロセス内メモリーで、サーバー再起動後の復元・永続化・認証はない。
+\item
+  CLIの成績指標はBB=10固定で計算される実装である。ブラインドを変更した場合の指標の意味に注意が必要。
+\item
+  RuleBasedAgentは簡易ルール、RandomAgentはランダム選択であり、戦略の強さ・公平性・GTO準拠を保証しない。
+\item
+  ブラウザーUIのショーダウン公開判断は情報開示だけに影響し、勝敗・ポット配分には影響しない。
+\item
+  ZIPに含まれる node\_modules / .venv
+  は大きく、通常のソース配布では除外することが望ましい。
+\end{itemize}
+
+\section{14.
+主要クラス・関数一覧}\label{ux4e3bux8981ux30afux30e9ux30b9ux95a2ux6570ux4e00ux89a7}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+名称
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+役割
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+GameConfig &
+ゲーム全体のブラインド、初期スタック、最大ハンド数、最大人数を定義 \\
+Game & 1ハンドの進行、配札、アクション、勝敗、精算、履歴作成 \\
+BettingRound & 合法アクション判定、投入処理、レイズ権、未コール返金 \\
+evaluate\_five / evaluate\_hand & 5枚または5～7枚の役評価 \\
+build\_side\_pots / distribute\_pots &
+ポット分割とポットごとの勝者・配当決定 \\
+Player / PlayerContext / PlayerView &
+プレイヤー判断用の共通インターフェイスと観測データ \\
+MatchRunner & 複数ハンドの実行 \\
+GameSession & ブラウザー対戦の状態・Queue・イベント管理 \\
+BrowserHumanPlayer & ブラウザー入力をエンジンのPlayer契約に接続 \\
+FastAPI app & セッション作成、イベント取得、アクション、次ハンドAPI \\
+\end{longtable}
+
+\section{付録A.
+仕様確認時の重要な用語}\label{ux4ed8ux9332a.-ux4ed5ux69d8ux78baux8a8dux6642ux306eux91cdux8981ux306aux7528ux8a9e}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+用語
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+本プロジェクトでの意味
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+street\_bet & 現在のストリートにおけるプレイヤーの投入合計 \\
+hand\_contribution & ハンド全体でプレイヤーが投入した累計 \\
+current\_bet & 現在のストリートで基準となる最大ベット額 \\
+to\_call &
+現在のベットに追いつくために必要な額（スタック上限を考慮する前の差額） \\
+max\_raise\_to & 現在のstreet\_betと残りstackを合計した投入先上限 \\
+revealed\_hole\_cards &
+結果表示・履歴上で公開された手札のみを格納するマップ \\
+eligible & そのポットを獲得する資格のあるプレイヤーID一覧 \\
+\end{longtable}
+
+\section{付録B.
+ソースコード確認範囲}\label{ux4ed8ux9332b.-ux30bdux30fcux30b9ux30b3ux30fcux30c9ux78baux8a8dux7bc4ux56f2}
+
+主に確認したファイル：README.md、pyproject.toml、src/poker\_sim/domain/\emph{、engine/game.py、engine/betting.py、engine/hand\_evaluator.py、engine/pots.py、players/}、runner/match.py、storage/hand\_history.py、evaluation/metrics.py、ui/cli.py、web/api.py、web/session.py、frontend/package.json、frontend/src/main.tsx、frontend/src/style.css、tests/*、tools/validate\_history.py。
+
+以上。
+
+\end{document}

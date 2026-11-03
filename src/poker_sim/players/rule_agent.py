@@ -234,4 +234,6 @@ class RuleBasedAgent:
 
     def decide_showdown(self, context: dict) -> str:
         # Show a winning hand; muck a losing one.
-        return "show" if context["won"] else "muck"
+        #return "show" if context["won"] else "muck"
+        # Always show for now.
+        return "show"

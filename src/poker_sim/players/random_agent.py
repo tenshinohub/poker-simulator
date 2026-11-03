@@ -27,4 +27,11 @@ class RandomAgent:
 
     def decide_showdown(self, context: dict) -> str:
         # RandomAgent uses a simple default disclosure policy for now.
-        return "show" if context["won"] else "muck"
+        #return "show" if context["won"] else "muck"
+        if context["won"]:
+            return "show"
+        else:
+            if self.rng.random() < 0.5:
+                return "show"
+            else:
+                return "muck"

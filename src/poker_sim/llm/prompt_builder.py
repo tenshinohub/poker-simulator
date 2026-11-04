@@ -30,10 +30,31 @@ MarkdownのコードブロックやJSON以外の文章は出力しないでく�
   ],
   "limitations": [
     "履歴だけでは判断できないこと"
-  ]
+  ],
+  "facts": {
+    "board": ["カード文字列の配列"],
+    "revealed_hole_cards": {"player_id": ["カード文字列"]},
+    "winners": ["player_id"],
+    "payouts": {"player_id": 0},
+    "contributions": {"player_id": 0},
+    "ending_stacks": {"player_id": 0},
+    "actions": [
+      {"player_id": "player_id", "street": "preflop", "action": "check", "amount": null}
+    ],
+    "pots": [
+      {"amount": 0, "eligible": ["player_id"], "winners": ["player_id"], "payouts": {"player_id": 0}}
+    ],
+    "reason": "showdown"
+  }
 }
 
 各フィールドは必ず出力してください。
+
+factsは機械検証用の構造化データです。入力JSONに存在する値をそのまま転記してください。
+入力に存在しない値は推測せず、該当フィールドをnullにしてください。
+actionsは入力の全アクションを元の順序で列挙し、player_id、street、action、amountを含めてください。
+potsは入力の全ポットを列挙してください。数値は文字列にせず数値型で出力してください。
+文章の要約とfactsの内容に矛盾が生じないようにしてください。
 該当する内容がない配列は空配列 [] にしてください。
 """
 

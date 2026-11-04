@@ -12,6 +12,7 @@ dependencies = []
 [project.scripts]
 poker-sim = "poker_sim.ui.cli:main"
 poker-analyze = "poker_sim.llm.cli:main"
+poker-validate = "poker_sim.llm.validation.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

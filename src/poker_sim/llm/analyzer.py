@@ -24,6 +24,9 @@ class HandHistoryAnalyzer:
         if not isinstance(record, dict) or not record.get("hand_id"):
             raise ValueError("A hand-history record with hand_id is required")
         response = self.provider.generate(LLMRequest(SYSTEM_PROMPT, build_request_payload(record)))
+        print("=== Gemini raw response ===")
+        print(response.content)
+        print("===========================")
         analysis = parse_analysis(response.content)
         return AnalysisResult(
             hand_id=str(record["hand_id"]),

@@ -11,9 +11,11 @@ dependencies = []
 
 [project.scripts]
 poker-sim = "poker_sim.ui.cli:main"
+poker-analyze = "poker_sim.llm.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [project.optional-dependencies]
 web = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+llm = ["google-genai>=1.0"]

@@ -51,7 +51,8 @@ build/
 # Runtime output
 # ========================================
 *.log
-hand_history*.jsonl
+# hand_history*.jsonl
+hand_*.jsonl
 
 # ========================================
 # LaTeX

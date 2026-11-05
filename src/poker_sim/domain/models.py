@@ -52,6 +52,7 @@ class PlayerView:
     to_call: int
     legal_actions: LegalActions
     action_history: tuple[dict[str, Any], ...]
+    opponent_count: int = 1
 
 @dataclass(frozen=True)
 class PlayerContext:

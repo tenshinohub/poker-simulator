@@ -15,7 +15,10 @@ class GameTests(unittest.TestCase):
         result = game.play_hand()
         after = sum(p.stack for p in game.players)
         self.assertEqual(before, after)
-        self.assertEqual(len(result.board), 5)
+        if result.reason == "showdown":
+            self.assertEqual(len(result.board), 5)
+        else:
+            self.assertEqual(result.reason, "everyone_else_folded")
         self.assertTrue(result.payouts)
 
     def test_losing_showdown_player_can_muck_without_changing_payout(self):

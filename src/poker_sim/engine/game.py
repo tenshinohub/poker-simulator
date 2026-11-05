@@ -349,7 +349,12 @@ class Game:
                           tuple(p.hole_cards), tuple(board), p.stack,
                           sum(x.hand_contribution for x in self.players),
                           round_state.current_bet, max(0, round_state.current_bet - p.street_bet),
-                          legal, tuple(dict(a) for a in actions))
+                          legal, tuple(dict(a) for a in actions),
+                          max(1, sum(
+                              not other.folded
+                              for other in self.players
+                              if other.player_id != p.player_id
+                          )))
 
     @staticmethod
     def position_names(player_count: int) -> list[str]:

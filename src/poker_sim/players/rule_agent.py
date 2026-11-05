@@ -1,18 +1,23 @@
 from __future__ import annotations
 
-from collections import Counter
+from hashlib import sha256
+import random
 from typing import Any, Iterable
 
 from ..domain.actions import Action
+from ..domain.cards import standard_deck
 from ..domain.models import PlayerContext
+from ..engine.hand_evaluator import evaluate_hand
 
 
 class RuleBasedAgent:
-    """A conservative, explainable baseline agent.
+    """An explainable agent that estimates showdown equity by simulation.
 
-    This is intentionally a simple rule-based policy, not a GTO strategy.
-    Bet/raise amounts are total street contributions, matching Action's API.
+    This is a heuristic policy, not a GTO strategy. Bet/raise amounts are
+    total street contributions, matching Action's API.
     """
+
+    _EQUITY_SAMPLES = 256
 
     def __init__(self, name: str = "Rule"):
         self.name = name
@@ -21,156 +26,83 @@ class RuleBasedAgent:
         obs = context.observation
         legal = obs.legal_actions
 
-        if obs.street == "preflop":
-            return self._decide_preflop(context)
-        return self._decide_postflop(context)
-
-    def _decide_preflop(self, context: PlayerContext) -> Action:
-        obs = context.observation
-        legal = obs.legal_actions
-        strength = self._evaluate_preflop(obs.hole_cards)
+        equity = self._estimate_equity(context)
         raises = self._count_raises(obs.action_history, obs.street)
-        position_bonus = self._position_bonus(obs.position)
-        effective_strength = min(1.0, strength + position_bonus)
+        opponents = max(1, obs.opponent_count)
+        position_adjustment = self._position_adjustment(obs.position)
 
-        # Re-raises require progressively stronger starting hands.
-        raise_threshold = (0.67, 0.82, 0.93)[min(raises, 2)]
-        if legal.can_raise and effective_strength >= raise_threshold:
-            target = self._minimum_raise_target(legal)
-            if target is not None:
+        if legal.can_raise:
+            threshold = min(
+                0.92,
+                0.65 + 0.025 * (opponents - 1) + 0.065 * raises
+                + position_adjustment,
+            )
+            target = self._raise_target(legal, obs.pot, obs.to_call)
+            if target is not None and equity >= threshold:
                 return Action.raise_to(target)
 
-        # A call is based on pot odds and hand strength, not a fixed chip amount.
-        if legal.can_call:
-            pot_odds = self._pot_odds(obs.pot, obs.to_call)
-            call_threshold = 0.08 + 0.55 * effective_strength
-            # Facing multiple raises, tighten the calling range.
-            call_threshold += min(0.18, raises * 0.06)
-            if pot_odds <= call_threshold:
-                return Action.call()
-
-        return self._passive_fallback(context)
-
-    def _decide_postflop(self, context: PlayerContext) -> Action:
-        obs = context.observation
-        legal = obs.legal_actions
-        hand_class = self._evaluate_postflop(
-            tuple(obs.hole_cards) + tuple(obs.community_cards)
-        )
-        raises = self._count_raises(obs.action_history, obs.street)
-
-        # Only value-raise with a made hand. Re-raises need a stronger hand.
-        if legal.can_raise:
-            threshold = 4 if raises == 0 else 5
-            if hand_class >= threshold:
-                target = self._minimum_raise_target(legal)
-                if target is not None:
-                    return Action.raise_to(target)
-
-        if legal.can_bet and hand_class >= 4:
-            target = legal.min_bet_to
-            if target is not None and target <= legal.max_raise_to:
+        if legal.can_bet:
+            threshold = min(0.82, 0.60 + 0.025 * (opponents - 1))
+            target = self._bet_target(legal, obs.pot)
+            if target is not None and equity >= threshold:
                 return Action.bet_to(target)
 
         if legal.can_call:
-            # Approximate strength-to-equity mapping; deliberately conservative.
-            estimated_strength = self._postflop_strength(hand_class)
-            pot_odds = self._pot_odds(obs.pot, obs.to_call)
-            if pot_odds <= estimated_strength * 0.85:
+            required_equity = self._pot_odds(obs.pot, legal.call_amount)
+            required_equity += min(0.16, 0.025 + 0.04 * raises)
+            if equity >= required_equity:
                 return Action.call()
+            if legal.can_fold:
+                return Action.fold()
 
         return self._passive_fallback(context)
 
-    @staticmethod
-    def _evaluate_preflop(cards: Iterable[Any]) -> float:
-        """Return a coarse 0..1 starting-hand score for two hole cards."""
-        cards = tuple(cards)
-        if len(cards) != 2:
-            return 0.0
+    @classmethod
+    def _estimate_equity(cls, context: PlayerContext) -> float:
+        """Estimate share of the pot against uniformly random live hands."""
+        obs = context.observation
+        known_cards = tuple(obs.hole_cards) + tuple(obs.community_cards)
+        if len(obs.hole_cards) != 2 or len(obs.community_cards) > 5:
+            raise ValueError("Equity estimation requires two hole cards and at most five board cards")
 
-        ranks = sorted((int(card.rank) for card in cards), reverse=True)
-        high, low = ranks
-        pair = high == low
-        suited = cards[0].suit == cards[1].suit
-        gap = high - low
+        deck = [card for card in standard_deck() if card not in known_cards]
+        opponents = max(1, obs.opponent_count)
+        cards_needed = opponents * 2 + 5 - len(obs.community_cards)
+        if cards_needed > len(deck):
+            raise ValueError("Not enough cards to estimate showdown equity")
 
-        if pair:
-            # Small pairs remain playable, but premium pairs score much higher.
-            return min(0.98, 0.58 + (high - 2) * 0.035)
+        seed_input = "|".join((
+            obs.hand_id,
+            obs.player_id,
+            obs.street,
+            str(opponents),
+            str(obs.pot),
+            str(obs.to_call),
+            ",".join(str(card) for card in known_cards),
+            str(len(obs.action_history)),
+        ))
+        seed = int.from_bytes(sha256(seed_input.encode("utf-8")).digest()[:8], "big")
+        rng = random.Random(seed)
+        wins = 0.0
 
-        score = 0.18 + (high - 2) * 0.035 + (low - 2) * 0.012
-        if suited:
-            score += 0.07
-        if gap == 1:
-            score += 0.06
-        elif gap == 2:
-            score += 0.025
-        elif gap >= 5:
-            score -= 0.06
-        if high >= 13 and low >= 10:
-            score += 0.10
-        if high == 14 and low >= 12:
-            score += 0.08
-        return max(0.05, min(0.95, score))
+        for _ in range(cls._EQUITY_SAMPLES):
+            sampled = rng.sample(deck, cards_needed)
+            opponent_cards = [
+                sampled[index * 2:index * 2 + 2]
+                for index in range(opponents)
+            ]
+            board = tuple(obs.community_cards) + tuple(sampled[opponents * 2:])
+            hero_rank = evaluate_hand(tuple(obs.hole_cards) + board)
+            opponent_ranks = [
+                evaluate_hand(tuple(cards) + board)
+                for cards in opponent_cards
+            ]
+            best_rank = max(hero_rank, *opponent_ranks)
+            winners = 1 + sum(rank == best_rank for rank in opponent_ranks)
+            if hero_rank == best_rank:
+                wins += 1.0 / winners
 
-    @staticmethod
-    def _evaluate_postflop(cards: Iterable[Any]) -> int:
-        """Return a made-hand category: 0 high card .. 8 straight flush.
-
-        This evaluates the best category available from the supplied 5-7 cards.
-        It intentionally does not compare kickers or calculate draw equity.
-        """
-        cards = tuple(cards)
-        if len(cards) < 5:
-            return 0
-
-        ranks = [int(card.rank) for card in cards]
-        counts = Counter(ranks)
-        groups = sorted(counts.values(), reverse=True)
-        flush_suits = {
-            suit for suit in {card.suit for card in cards}
-            if sum(card.suit == suit for card in cards) >= 5
-        }
-
-        def has_straight(values: Iterable[int]) -> bool:
-            unique = set(values)
-            if 14 in unique:
-                unique.add(1)  # wheel: A-2-3-4-5
-            ordered = sorted(unique)
-            run = 1
-            for i in range(1, len(ordered)):
-                run = run + 1 if ordered[i] == ordered[i - 1] + 1 else 1
-                if run >= 5:
-                    return True
-            return False
-
-        if flush_suits:
-            for suit in flush_suits:
-                suited_ranks = [card.rank for card in cards if card.suit == suit]
-                if has_straight(suited_ranks):
-                    return 8
-        if groups[0] == 4:
-            return 7
-        if groups[0] == 3 and len(groups) > 1 and groups[1] >= 2:
-            return 6
-        if flush_suits:
-            return 5
-        if has_straight(ranks):
-            return 4
-        if groups[0] == 3:
-            return 3
-        if groups[0] == 2 and groups.count(2) >= 2:
-            return 2
-        if groups[0] == 2:
-            return 1
-        return 0
-
-    @staticmethod
-    def _postflop_strength(hand_class: int) -> float:
-        # Heuristic values, not statistically calibrated equities.
-        return (0.12, 0.28, 0.48, 0.62, 0.76, 0.84, 0.92, 0.97, 0.99)[
-            max(0, min(8, hand_class))
-        ]
+        return wins / cls._EQUITY_SAMPLES
 
     @staticmethod
     def _count_raises(history: Iterable[dict[str, Any]], street: str) -> int:
@@ -189,16 +121,13 @@ class RuleBasedAgent:
         return count
 
     @staticmethod
-    def _position_bonus(position: str) -> float:
+    def _position_adjustment(position: str) -> float:
         normalized = position.upper()
-        if normalized == "BTN":
-            return 0.08
-        if normalized == "BTN/SB":
-            return 0.04
-        if normalized in {"SB", "BB"}:
-            return 0.0
-        # SeatN values are unknown relative to the button; don't guess.
-        return 0.02
+        if normalized in {"BTN", "BTN/SB", "CO"}:
+            return -0.02
+        if normalized.startswith("UTG"):
+            return 0.025
+        return 0.0
 
     @staticmethod
     def _pot_odds(pot: int, to_call: int) -> float:
@@ -208,13 +137,19 @@ class RuleBasedAgent:
         return to_call / denominator
 
     @staticmethod
-    def _minimum_raise_target(legal: Any) -> int | None:
+    def _raise_target(legal: Any, pot: int, to_call: int) -> int | None:
         minimum = legal.min_raise_to
-        if minimum is None:
+        if minimum is None or minimum > legal.max_raise_to:
             return None
-        if minimum <= legal.max_raise_to:
-            return minimum
-        return None
+        target = max(minimum, round((pot + to_call) * 0.66))
+        return min(legal.max_raise_to, target)
+
+    @staticmethod
+    def _bet_target(legal: Any, pot: int) -> int | None:
+        minimum = legal.min_bet_to
+        if minimum is None or minimum > legal.max_raise_to:
+            return None
+        return min(legal.max_raise_to, max(minimum, round(pot * 0.66)))
 
     @staticmethod
     def _passive_fallback(context: PlayerContext) -> Action:

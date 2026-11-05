@@ -52,7 +52,8 @@ build/
 # ========================================
 *.log
 # hand_history*.jsonl
-hand_*.jsonl
+# hand_*.jsonl
+*.jsonl
 
 # ========================================
 # LaTeX

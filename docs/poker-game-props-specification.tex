@@ -125,7 +125,7 @@
 \makeatother
 \subtitle{Poker Game Props / ソースコード準拠版}
 \author{}
-\date{2026年11月3日}
+\date{2026年11月5日}
 
 \begin{document}
 \maketitle
@@ -134,13 +134,13 @@ POKER GAME PROPS
 
 ソースコード準拠版
 
-対象：poker-game-props.zip 作成日：2026年11月3日
+対象：poker-simulator リポジトリ 作成日：2026年11月5日
 
 \section{文書の位置づけ}\label{ux6587ux66f8ux306eux4f4dux7f6eux3065ux3051}
 
-本書は、提供された poker-game-props.zip に含まれる Python
+本書は、poker-simulator リポジトリの Python
 エンジン、FastAPI サーバー、React + TypeScript
-フロントエンド、README、テストコードを確認して整理した実装仕様書である。ソースコードに存在する動作を記載し、設計上の推測や将来案を現行仕様として扱わない。
+フロントエンド、LLMによる履歴分析・検証機能、README、テストコードを確認して整理した実装仕様書である。ソースコードに存在する動作を記載し、設計上の推測や将来案を現行仕様として扱わない。
 
 対象アプリケーションは、ノーリミット・テキサスホールデムの学習・検証用シミュレーターである。ブラウザーUIで使用するチップはゲーム内の表示用カウンターであり、購入・換金・譲渡を行わない。
 
@@ -189,6 +189,8 @@ Webバックエンド & web/api.py, web/session.py & HTTP
 API、セッション、AI進行、人間入力待ち、イベント配信 \\
 Webフロントエンド & frontend/src/main.tsx, style.css &
 テーブル表示、設定、アクション入力、結果表示 \\
+履歴分析・検証 & llm/、llm/validation/ &
+Geminiによる履歴要約と、構造化された事実の元履歴との照合 \\
 \end{longtable}
 
 \subsection{1.2 使用技術}\label{ux4f7fux7528ux6280ux8853}
@@ -201,6 +203,8 @@ Webフロントエンド & frontend/src/main.tsx, style.css &
   オプション）。
 \item
   フロントエンド：React 18、TypeScript、Vite。
+\item
+  任意の履歴分析：google-genai（llm オプション）と Gemini API。
 \item
   フロントエンドのAPI呼び出しは fetch を使用し、Vite開発サーバー経由で
   /api をバックエンドへ転送する構成。
@@ -226,6 +230,7 @@ CLI & human / rule / random
 のプレイヤーを指定して、複数ハンドを実行する。 \\
 ブラウザー & 人間1人とAI
 1～8人で1ハンドずつ進行する。人間の入力をHTTP経由で受け付ける。 \\
+履歴分析 & 保存済みJSONL履歴を外部LLMで要約し、構造化された事実を元履歴と照合する。ゲーム進行には参加しない。 \\
 \end{longtable}
 
 \section{2.
@@ -233,7 +238,7 @@ CLI & human / rule / random
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{poker{-}game{-}props/}
+\NormalTok{poker{-}simulator/}
 \NormalTok{├─ pyproject.toml}
 \NormalTok{├─ README.md}
 \NormalTok{├─ src/poker\_sim/}
@@ -254,6 +259,15 @@ CLI & human / rule / random
 \NormalTok{│  ├─ runner/match.py}
 \NormalTok{│  ├─ storage/hand\_history.py}
 \NormalTok{│  ├─ evaluation/metrics.py}
+\NormalTok{│  ├─ llm/}
+\NormalTok{│  │  ├─ analyzer.py}
+\NormalTok{│  │  ├─ prompt\_builder.py}
+\NormalTok{│  │  ├─ response\_parser.py}
+\NormalTok{│  │  ├─ providers/}
+\NormalTok{│  │  │  └─ gemini.py}
+\NormalTok{│  │  └─ validation/}
+\NormalTok{│  │     ├─ cli.py}
+\NormalTok{│  │     └─ validator.py}
 \NormalTok{│  ├─ ui/cli.py}
 \NormalTok{│  └─ web/}
 \NormalTok{│     ├─ api.py}
@@ -268,8 +282,8 @@ CLI & human / rule / random
 \end{Highlighting}
 \end{Shaded}
 
-ZIPには .venv と frontend/node\_modules
-も含まれている。これらは実行環境・依存パッケージであり、アプリケーションの主要な保守対象ソースではない。
+`.venv/`、`frontend/node\_modules/`、ビルド成果物は .gitignore
+で除外される環境・依存ファイルであり、アプリケーションの保守対象ソースではない。
 
 \section{3. ドメイン仕様}\label{ux30c9ux30e1ux30a4ux30f3ux4ed5ux69d8}
 
@@ -579,11 +593,11 @@ ValueError。
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{python {-}m pip install {-}e .}
+\NormalTok{python3 {-}m pip install {-}e .}
 \NormalTok{poker{-}sim {-}{-}players human,rule,random {-}{-}hands 10 {-}{-}seed 123}
 
 \NormalTok{\# パッケージをインストールしない場合}
-\NormalTok{PYTHONPATH=src python {-}m poker\_sim.ui.cli {-}{-}players human,rule {-}{-}hands 1}
+\NormalTok{PYTHONPATH=src python3 {-}m poker\_sim.ui.cli {-}{-}players human,rule {-}{-}hands 1}
 \end{Highlighting}
 \end{Shaded}
 
@@ -839,19 +853,56 @@ summarize\_match() は hands\_played, final\_stacks, net\_results,
 net\_bb, bb\_per\_100 を返す。現在の実装では net\_bb
 の算出に10をBB値として使用する。
 
+\subsection{10.4 LLMによる履歴分析・検証}
+
+履歴分析は保存済みJSONLを対象とする後処理であり、Player / Game
+の判断やゲーム結果には関与しない。GeminiProvider
+が現在のLLMプロバイダー実装であり、実行には任意依存の google-genai
+と環境変数 GEMINI\_API\_KEY が必要である。
+
+\begin{itemize}
+\item
+  poker-analyze は hand\_id を持つ履歴を読み、Gemini
+  に事実ベースの要約を要求する。要約結果は provider、model、作成時刻、
+  analysis、利用量を含むJSONLとして出力される。--model は必須、
+  --input は必須、--output の既定値は hand\_analysis.jsonl、
+  --limit は任意の処理件数上限である。
+\item
+  分析入力には履歴の公開情報と revealed\_hole\_cards
+  のみを含め、非公開の手札は送信しない。応答には要約、観察事項、
+  ストリート別タイムライン、制約事項と、検証向けfactsを要求する。
+\item
+  poker-validate は元履歴と分析JSONLを hand\_id で対応付け、
+  ボード、公開手札、勝者、配当、貢献額、終了スタック、アクション、
+  ショーダウン判断、ポット、終了理由を照合する。出力先の既定値は
+  hand\_validation.jsonl。
+\item
+  構造化データの欠落は not\_reported、不一致は fail
+  として個別に報告する。文章の要約そのものの正確性は機械検証しない。
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{python3 {-}m pip install {-}e ".[llm]"}
+\NormalTok{\# GEMINI\_API\_KEY を環境変数に設定してから実行}
+\NormalTok{poker{-}analyze {-}{-}input hand\_history.jsonl {-}{-}output hand\_analysis.jsonl {-}{-}model YOUR\_GEMINI\_MODEL\_ID}
+\NormalTok{poker{-}validate {-}{-}input hand\_history.jsonl {-}{-}analysis hand\_analysis.jsonl {-}{-}output hand\_validation.jsonl}
+\end{Highlighting}
+\end{Shaded}
+
 \section{11. 起動・利用手順}\label{ux8d77ux52d5ux5229ux7528ux624bux9806}
 
 \subsection{11.1 Python環境}\label{pythonux74b0ux5883}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{python {-}m venv .venv}
+\NormalTok{python3 {-}m venv .venv}
 \NormalTok{\# Windows PowerShell}
 \NormalTok{.venv\textbackslash{}\textbackslash{}Scripts\textbackslash{}\textbackslash{}Activate.ps1}
 \NormalTok{\# Linux / WSL}
 \NormalTok{source .venv/bin/activate}
-\NormalTok{python {-}m pip install {-}{-}upgrade pip}
-\NormalTok{python {-}m pip install {-}e ".[web]"}
+\NormalTok{python3 {-}m pip install {-}{-}upgrade pip}
+\NormalTok{python3 {-}m pip install {-}e ".[web]"}
 \end{Highlighting}
 \end{Shaded}
 
@@ -860,7 +911,7 @@ net\_bb, bb\_per\_100 を返す。現在の実装では net\_bb
 
 \section{プロジェクトルートで実行}\label{ux30d7ux30edux30b8ux30a7ux30afux30c8ux30ebux30fcux30c8ux3067ux5b9fux884c}
 
-PYTHONPATH=src python -m uvicorn poker\_sim.web.api:app --reload --port
+PYTHONPATH=src python3 -m uvicorn poker\_sim.web.api:app --reload --port
 8000
 
 \subsection{11.3
@@ -919,20 +970,25 @@ test\_pots.py / test\_pot\_awards.py / test\_pot\_boundaries.py &
 test\_refund\_side\_pots.py & 未コール返金とサイドポット \\
 test\_web\_session.py & ブラウザーセッション、イベント、入力検証 \\
 test\_browser\_positions.py & 人数別ポジションと初回人間位置 \\
+test\_llm\_analysis.py & 分析プロンプト、応答解析、隠し手札の除外 \\
+test\_llm\_validation.py & 構造化事実の一致、不一致、未報告の判定 \\
 \end{longtable}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{python {-}m unittest discover {-}s tests {-}v}
+\NormalTok{python3 {-}m unittest discover {-}s tests {-}v}
 \end{Highlighting}
 \end{Shaded}
 
 tools/validate\_history.py
 はJSONL履歴を読み、チップ総量、プレイヤーID、アクション前後の状態、合法手、貢献額とポット総額、ポットの対象者、配当合計等を独立ロジックで検査する。
 
-python tools/validate\_history.py hand\_history.jsonl
+python3 tools/validate\_history.py hand\_history.jsonl
 
-本書作成時点では、ZIP内のテストファイルを確認したが、全テストの再実行結果は取得していない。したがってテスト成功を保証する記載は行わない。
+test\_llm\_analysis.py は分析ペイロードと応答パーサーを、test\_llm\_validation.py
+は構造化事実の一致・不一致・未報告の扱いをテストする。
+
+本書の更新時に全テストを実行したことを示すものではない。
 
 \section{13.
 現行実装の制約・注意点}\label{ux73feux884cux5b9fux88c5ux306eux5236ux7d04ux6ce8ux610fux70b9}
@@ -957,10 +1013,12 @@ python tools/validate\_history.py hand\_history.jsonl
 \item
   RuleBasedAgentは簡易ルール、RandomAgentはランダム選択であり、戦略の強さ・公平性・GTO準拠を保証しない。
 \item
+  LLM分析は任意のGemini API呼び出しを伴い、APIキーと通信環境が必要である。分析結果の自由記述は検証器による正確性保証の対象ではない。
+\item
   ブラウザーUIのショーダウン公開判断は情報開示だけに影響し、勝敗・ポット配分には影響しない。
 \item
-  ZIPに含まれる node\_modules / .venv
-  は大きく、通常のソース配布では除外することが望ましい。
+  .venv、node\_modules、ビルド成果物は .gitignore
+  で除外される。利用時には各環境で依存パッケージをインストールする。
 \end{itemize}
 
 \section{14.
@@ -992,6 +1050,8 @@ MatchRunner & 複数ハンドの実行 \\
 GameSession & ブラウザー対戦の状態・Queue・イベント管理 \\
 BrowserHumanPlayer & ブラウザー入力をエンジンのPlayer契約に接続 \\
 FastAPI app & セッション作成、イベント取得、アクション、次ハンドAPI \\
+HandHistoryAnalyzer / GeminiProvider & 履歴からの事実ベースの文章分析 \\
+validate\_analysis & 分析結果の構造化事実を元履歴と照合 \\
 \end{longtable}
 
 \section{付録A.
@@ -1024,7 +1084,7 @@ eligible & そのポットを獲得する資格のあるプレイヤーID一覧 
 \section{付録B.
 ソースコード確認範囲}\label{ux4ed8ux9332b.-ux30bdux30fcux30b9ux30b3ux30fcux30c9ux78baux8a8dux7bc4ux56f2}
 
-主に確認したファイル：README.md、pyproject.toml、src/poker\_sim/domain/\emph{、engine/game.py、engine/betting.py、engine/hand\_evaluator.py、engine/pots.py、players/}、runner/match.py、storage/hand\_history.py、evaluation/metrics.py、ui/cli.py、web/api.py、web/session.py、frontend/package.json、frontend/src/main.tsx、frontend/src/style.css、tests/*、tools/validate\_history.py。
+主に確認したファイル：README.md、pyproject.toml、src/poker\_sim/domain/、engine/game.py、engine/betting.py、engine/hand\_evaluator.py、engine/pots.py、players/、runner/match.py、storage/hand\_history.py、evaluation/metrics.py、llm/、ui/cli.py、web/api.py、web/session.py、frontend/package.json、frontend/src/main.tsx、frontend/src/style.css、tests/、tools/validate\_history.py。
 
 以上。
 

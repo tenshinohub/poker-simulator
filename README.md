@@ -1,6 +1,6 @@
-# Poker Simulator (MVP)
+# Poker Simulator
 
-A dependency-free, modular No-Limit Texas Hold'em cash-game simulator for Python 3.11+.
+A modular No-Limit Texas Hold'em cash-game simulator for Python 3.11+. The core package has no runtime dependencies; the browser UI and hand-history analysis use optional dependencies.
 
 ## Features
 
@@ -10,6 +10,7 @@ A dependency-free, modular No-Limit Texas Hold'em cash-game simulator for Python
 - Side pots, ties, odd-chip distribution
 - 7-card hand evaluation (best 5 of 7)
 - Seeded shuffling, hand histories, basic statistics
+- Optional Gemini-powered hand-history recaps and structured fact validation
 - Engine does not depend on a particular player strategy
 
 ## Run
@@ -17,17 +18,17 @@ A dependency-free, modular No-Limit Texas Hold'em cash-game simulator for Python
 From this directory:
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
-python -m pip install -e .
+python3 -m pip install -e .
 poker-sim --players human,rule,random --hands 10 --seed 123
 ```
 
 Without installing the package:
 
 ```bash
-PYTHONPATH=src python -m poker_sim.ui.cli --players human,rule --hands 1
+PYTHONPATH=src python3 -m poker_sim.ui.cli --players human,rule --hands 1
 ```
 
 Player types are `human`, `random`, and `rule`. The first player is the human if `human` is specified.
@@ -40,6 +41,7 @@ Player types are `human`, `random`, and `rule`. The first player is the human if
 - `runner`: hand/match orchestration
 - `storage`: JSON Lines hand history
 - `evaluation`: basic match statistics
+- `llm`: optional post-hand recap and structured fact validation
 - `ui`: CLI adapter
 
 ## API contract
@@ -59,10 +61,38 @@ A hand can instead terminate early when all but one player fold. If no further b
 ## Testing
 
 ```bash
-python -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v
 ```
 
-The tests focus on hand ranking, legal actions, side pots, odd chips, and complete hands. This is an MVP; for production use, expand property-based testing and compare evaluator results against an independent reference implementation.
+The tests cover hand ranking (including an independent oracle), betting rules and state transitions, side pots and refunds, complete hands, browser sessions, and hand-history analysis and validation.
+
+## Hand-history analysis (optional)
+
+The analysis tools run after a hand has been recorded; they do not participate in player decisions or affect game results. Install the optional Gemini dependency and set an API key:
+
+```bash
+python3 -m pip install -e ".[llm]"
+# PowerShell
+$env:GEMINI_API_KEY = "your-api-key"
+# macOS/Linux
+export GEMINI_API_KEY="your-api-key"
+```
+
+Generate factual recaps from a JSON Lines hand history:
+
+```bash
+poker-analyze --input hand_history.jsonl --output hand_analysis.jsonl --model YOUR_GEMINI_MODEL_ID
+```
+
+`--limit N` optionally caps the number of hands analyzed. The command requires `--model`; `--output` defaults to `hand_analysis.jsonl`. Only data present in the hand history is sent for analysis, including hole cards explicitly revealed in that record; hidden cards are not provided.
+
+Compare the generated structured facts with the source history:
+
+```bash
+poker-validate --input hand_history.jsonl --analysis hand_analysis.jsonl --output hand_validation.jsonl
+```
+
+The validator reports matching, mismatching, and unreported structured fields separately. It checks recorded facts, not the accuracy of free-form recap text. Its `--output` defaults to `hand_validation.jsonl`.
 
 ## Browser UI (play-money learning table)
 
@@ -71,13 +101,13 @@ The browser adapter keeps the existing Python game engine authoritative. The bro
 Install the optional API dependencies:
 
 ```bash
-python -m pip install -e ".[web]"
+python3 -m pip install -e ".[web]"
 ```
 
 Start the API from the project root:
 
 ```bash
-PYTHONPATH=src python -m uvicorn poker_sim.web.api:app --reload --port 8000
+PYTHONPATH=src python3 -m uvicorn poker_sim.web.api:app --reload --port 8000
 ```
 
 In a second terminal, install and start the React/Vite frontend:

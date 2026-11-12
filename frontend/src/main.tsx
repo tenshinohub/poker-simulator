@@ -2,14 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 
-type Player = { player_id: string; name: string; seat: number; position?: string; is_button?: boolean; stack: number; street_bet: number; folded: boolean; all_in: boolean; is_human: boolean; action_status?: string; last_action?: string | null }
+type Player = { player_id: string; name: string; player_type?: string; seat: number; position?: string; is_button?: boolean; stack: number; street_bet: number; folded: boolean; all_in: boolean; is_human: boolean; action_status?: string; last_action?: string | null }
 type EventData = {
   type: string; session_id?: string; hand_id?: string; street?: string; human_player_id?: string;
   hole_cards?: string[]; board?: string[]; players?: Player[]; pot?: number; current_bet?: number; to_call?: number;
   button_seat?: number; human_position?: string;
   legal_actions?: Record<string, boolean | number | null>; winners?: string[]; winner_names?: string[]; payouts?: Record<string, number>;
   ending_stacks?: Record<string, number>; revealed_hole_cards?: Record<string, string[]>; reason?: string; message?: string;
+  name?: string; action?: string; reason_detail?: string; provider?: string; model?: string; error?: string;
 }
+type AIConfig = { type: 'rule' | 'random' | 'llm'; provider: 'gemini' | 'openai'; model: string; name: string }
 
 const SUIT: Record<string, string> = { s: '♠', h: '♥', d: '♦', c: '♣' }
 function Card({ code, hidden = false }: { code?: string; hidden?: boolean }) {
@@ -24,6 +26,7 @@ function App() {
   const [stack, setStack] = useState(1000)
   const [smallBlind, setSmallBlind] = useState(5)
   const [bigBlind, setBigBlind] = useState(10)
+  const [aiConfigs, setAIConfigs] = useState<AIConfig[]>(Array.from({length: 8}, (_, i) => ({ type: 'rule', provider: 'gemini', model: 'gemini-2.5-flash', name: `AI ${i + 1}` })))
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [game, setGame] = useState<EventData | null>(null)
   const [busy, setBusy] = useState(false)
@@ -35,7 +38,7 @@ function App() {
   async function start() {
     setBusy(true); setNotice('テーブルを準備しています…'); setLastResult(null)
     try {
-      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player_count: count, starting_stack: stack, small_blind: smallBlind, big_blind: bigBlind }) })
+      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player_count: count, starting_stack: stack, small_blind: smallBlind, big_blind: bigBlind, ai_players: aiConfigs.slice(0, count - 1) }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || '開始できませんでした')
       setSessionId(data.session_id); setGame(null); setShowdownPending(false); setNotice('ゲームを開始しました')
@@ -56,6 +59,12 @@ function App() {
             setShowdownPending(false); setGame(event); setNotice(`${event.street?.toUpperCase()}：あなたのアクションです`)
             const legal = event.legal_actions || {}
             setAmount(Number(legal.min_raise_to || legal.min_bet_to || 20))
+          } else if (event.type === 'ai_thinking') {
+            setNotice(`${event.name || 'AI'} が考えています…`)
+          } else if (event.type === 'ai_action') {
+            setNotice(`${event.name || 'AI'}：${(event.action || '').toUpperCase()}${event.reason ? ` — ${event.reason}` : ''}`)
+          } else if (event.type === 'ai_fallback') {
+            setNotice(`${event.name || 'AI'}：AI応答エラーのため合法手にフォールバックしました`)
           } else if (event.type === 'showdown_decision') {
             setShowdownPending(true)
             setGame(prev => prev ? { ...prev, type: 'showdown_decision', board: event.board || prev.board, legal_actions: {} } : prev)
@@ -125,6 +134,22 @@ function App() {
         <label>初期チップ <strong>{stack.toLocaleString()}</strong><input type="number" min="100" max="100000" step="100" value={stack} onChange={e=>setStack(Number(e.target.value))}/></label>
         <label>スモールブラインド<input type="number" min="1" value={smallBlind} onChange={e=>setSmallBlind(Number(e.target.value))}/></label>
         <label>ビッグブラインド<input type="number" min="1" value={bigBlind} onChange={e=>setBigBlind(Number(e.target.value))}/></label>
+      </div>
+      <div className="ai-configs">
+        <div className="eyebrow">AI PLAYER SETTINGS</div><h3>AIプレイヤー設定</h3>
+        <p>各席のAIタイプを選択できます。LLMを選ぶ場合は、サーバー側にAPIキーを設定してください。</p>
+        {aiConfigs.slice(0, count - 1).map((config, index) => <div className="ai-config-row" key={index}>
+          <b>席 {index + 2}</b>
+          <label>プレイヤー<select value={config.type} onChange={e=>setAIConfigs(prev=>prev.map((v,i)=>i===index?{...v,type:e.target.value as AIConfig['type']}:v))}>
+            <option value="rule">Rule-based</option><option value="random">Random</option><option value="llm">生成AI（LLM）</option>
+          </select></label>
+          {config.type === 'llm' && <>
+            <label>プロバイダー<select value={config.provider} onChange={e=>setAIConfigs(prev=>prev.map((v,i)=>i===index?{...v,provider:e.target.value as AIConfig['provider'],model:e.target.value==='gemini'?'gemini-2.5-flash':'gpt-5.5'}:v))}>
+              <option value="gemini">Gemini</option><option value="openai">OpenAI</option>
+            </select></label>
+            <label className="model-field">モデル<input value={config.model} onChange={e=>setAIConfigs(prev=>prev.map((v,i)=>i===index?{...v,model:e.target.value}:v))} placeholder={config.provider==='gemini'?'gemini-2.5-flash':'gpt-5.5'}/></label>
+          </>}
+        </div>)}
       </div>
       <button className="primary start" disabled={busy || bigBlind < smallBlind || count < 2} onClick={start}>テーブルを開始 <span>→</span></button>
     </section> : <>

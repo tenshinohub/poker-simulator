@@ -10,6 +10,9 @@ from ..domain.actions import Action
 from ..engine.game import Game, GameConfig
 from ..players.random_agent import RandomAgent
 from ..players.rule_agent import RuleBasedAgent
+from ..players.llm_agent import LLMPlayer
+from ..llm.providers.gemini import GeminiProvider
+from ..llm.providers.openai import OpenAIProvider
 
 
 class BrowserHumanPlayer:
@@ -28,7 +31,8 @@ class BrowserHumanPlayer:
 
 class GameSession:
     def __init__(self, player_count: int, starting_stack: int, small_blind: int,
-                 big_blind: int, seed: int | None = None) -> None:
+                 big_blind: int, seed: int | None = None,
+                 ai_players: list[dict[str, Any]] | None = None) -> None:
         if not 2 <= player_count <= 9:
             raise ValueError("player_count must be between 2 and 9")
         if starting_stack <= 0 or small_blind <= 0 or big_blind < small_blind:
@@ -42,9 +46,30 @@ class GameSession:
         self.latest_state: dict[str, Any] = {"status": "starting"}
         self.game: Game | None = None
         players = [BrowserHumanPlayer(self)]
+        configs = ai_players or []
+        if configs and len(configs) != player_count - 1:
+            raise ValueError("ai_players must contain one configuration for each AI seat")
         for i in range(player_count - 1):
-            players.append(RuleBasedAgent(f"AI {i + 1}") if i % 2 == 0
-                           else RandomAgent(f"AI {i + 1}", seed=(seed or 0) + i + 1))
+            spec = configs[i] if configs else {"type": "rule" if i % 2 == 0 else "random"}
+            kind = str(spec.get("type", "rule")).lower()
+            name = str(spec.get("name") or f"AI {i + 1}")[:40]
+            if kind == "rule":
+                player = RuleBasedAgent(name)
+            elif kind == "random":
+                player = RandomAgent(name, seed=(seed or 0) + i + 1)
+            elif kind == "llm":
+                provider_name = str(spec.get("provider", "gemini")).lower()
+                model = str(spec.get("model") or ("gemini-2.5-flash" if provider_name == "gemini" else "gpt-4.1-mini"))
+                if provider_name == "gemini":
+                    provider = GeminiProvider(model)
+                elif provider_name == "openai":
+                    provider = OpenAIProvider(model)
+                else:
+                    raise ValueError(f"Unsupported LLM provider: {provider_name}")
+                player = LLMPlayer(name, provider, on_status=self._emit_ai_status)
+            else:
+                raise ValueError(f"Unsupported AI player type: {kind}")
+            players.append(player)
         config = GameConfig(small_blind, big_blind, starting_stack, 1000, 9)
         self.game = Game(players, config, seed)
         # Start the first six-max hand with the human in MP, as requested.
@@ -56,6 +81,9 @@ class GameSession:
         self.game.button = (first_button - 1) % player_count
         self.thread = Thread(target=self._run, daemon=True)
         self.thread.start()
+
+    def _emit_ai_status(self, event_type: str, payload: dict[str, Any]) -> None:
+        self.emit({"type": event_type, "session_id": self.id, **payload})
 
     def emit(self, event: dict[str, Any]) -> None:
         with self.lock:
@@ -85,6 +113,7 @@ class GameSession:
                 "folded": p.folded,
                 "all_in": p.all_in,
                 "is_human": p.player_id == "p1",
+                "player_type": "human" if p.player_id == "p1" else ("llm" if isinstance(p, LLMPlayer) else "ai"),
                 "action_status": action_status,
                 "last_action": None,
             })

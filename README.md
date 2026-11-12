@@ -10,7 +10,7 @@ A modular No-Limit Texas Hold'em cash-game simulator for Python 3.11+. The core 
 - Side pots, ties, odd-chip distribution
 - 7-card hand evaluation (best 5 of 7)
 - Seeded shuffling, hand histories, basic statistics
-- Optional Gemini-powered hand-history recaps and structured fact validation
+- Optional Gemini/OpenAI live LLM players and Gemini-powered hand-history recaps
 - Engine does not depend on a particular player strategy
 
 ## Run
@@ -41,7 +41,7 @@ Player types are `human`, `random`, and `rule`. The first player is the human if
 - `runner`: hand/match orchestration
 - `storage`: JSON Lines hand history
 - `evaluation`: basic match statistics
-- `llm`: optional post-hand recap and structured fact validation
+- `llm`: provider adapters, live LLM decisions, post-hand recap and structured fact validation
 - `ui`: CLI adapter
 
 ## API contract
@@ -96,12 +96,24 @@ The validator reports matching, mismatching, and unreported structured fields se
 
 ## Browser UI (play-money learning table)
 
-The browser adapter keeps the existing Python game engine authoritative. The browser only sends a player's selected action; the engine checks legality and updates chip stacks. The human seat is fixed at the bottom of the table, and the table supports 2–9 seats (one human plus AI opponents).
+The browser adapter keeps the existing Python game engine authoritative. The browser only sends the human player's selected action; the engine checks legality and updates chip stacks. The human seat is fixed at the bottom of the table, and the table supports 2–9 seats (one human plus AI opponents). AI seats can be configured individually as Rule-based, Random, or LLM players. LLM seats support Gemini and OpenAI through a shared provider interface.
 
 Install the optional API dependencies:
 
 ```bash
-python3 -m pip install -e ".[web]"
+python3 -m pip install -e ".[web,llm]"
+```
+
+Set the API key(s) for the provider(s) you plan to use. Keep keys on the backend; never put them in frontend source code:
+
+```bash
+# macOS / Linux
+export GEMINI_API_KEY="your-gemini-api-key"
+export OPENAI_API_KEY="your-openai-api-key"
+
+# PowerShell
+$env:GEMINI_API_KEY = "your-gemini-api-key"
+$env:OPENAI_API_KEY = "your-openai-api-key"
 ```
 
 Start the API from the project root:
@@ -119,6 +131,8 @@ npm run dev
 ```
 
 Open <http://localhost:5173>. Vite forwards `/api` requests to the FastAPI server on port 8000. For a production frontend, run `npm run build`; FastAPI serves the generated `frontend/dist` directory when it exists.
+
+In the setup screen, select the player type for each AI seat. For an LLM seat, choose Gemini or OpenAI and enter the model ID supported by your API account. The current UI suggests `gemini-2.5-flash` and `gpt-5.5` as starting values; model availability depends on the provider account. The LLM player receives only its own hole cards and public game information. It must return a JSON action; the adapter checks the action against the legal-action snapshot and falls back to check, call, or fold if the response is invalid or the provider call fails. AI status is sent to the browser while the model is responding.
 
 All chips are non-purchasable, non-redeemable in-game counters. The current browser adapter is an MVP: it advances one hand at a time and exposes the human's private cards and public table state only.
 

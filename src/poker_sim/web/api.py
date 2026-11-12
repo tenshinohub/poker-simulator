@@ -22,6 +22,7 @@ class CreateSession(BaseModel):
     small_blind: int = Field(default=5, ge=1, le=10000)
     big_blind: int = Field(default=10, ge=1, le=20000)
     seed: int | None = None
+    ai_players: list[dict[str, Any]] | None = None
 
 
 class PlayerAction(BaseModel):
@@ -51,7 +52,7 @@ def create_session(config: CreateSession):
         raise HTTPException(status_code=422, detail="big_blind must be >= small_blind")
     try:
         session = GameSession(**config.model_dump())
-    except ValueError as exc:
+    except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     with SESSIONS_LOCK:
         SESSIONS[session.id] = session

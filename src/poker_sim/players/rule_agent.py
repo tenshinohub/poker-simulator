@@ -4,7 +4,7 @@ from collections import Counter
 from typing import Any, Iterable
 
 from ..domain.actions import Action
-from ..domain.models import PlayerContext
+from ..domain.models import PlayerContext, PlayerView
 
 
 class RuleBasedAgent:
@@ -36,7 +36,7 @@ class RuleBasedAgent:
         # Re-raises require progressively stronger starting hands.
         raise_threshold = (0.67, 0.82, 0.93)[min(raises, 2)]
         if legal.can_raise and effective_strength >= raise_threshold:
-            target = self._minimum_raise_target(legal)
+            target = self._preflop_raise_target(obs, legal, effective_strength)
             if target is not None:
                 return Action.raise_to(target)
 
@@ -54,32 +54,133 @@ class RuleBasedAgent:
     def _decide_postflop(self, context: PlayerContext) -> Action:
         obs = context.observation
         legal = obs.legal_actions
-        hand_class = self._evaluate_postflop(
-            tuple(obs.hole_cards) + tuple(obs.community_cards)
-        )
+        cards = tuple(obs.hole_cards) + tuple(obs.community_cards)
+        hand_class = self._evaluate_postflop(cards)
         raises = self._count_raises(obs.action_history, obs.street)
 
-        # Only value-raise with a made hand. Re-raises need a stronger hand.
+        # Raise the strongest made hands; use pot-relative sizing rather than
+        # always choosing the minimum.
         if legal.can_raise:
-            threshold = 4 if raises == 0 else 5
+            threshold = 3 if raises == 0 else 5
             if hand_class >= threshold:
-                target = self._minimum_raise_target(legal)
+                target = self._postflop_raise_target(obs, legal, hand_class)
                 if target is not None:
                     return Action.raise_to(target)
 
-        if legal.can_bet and hand_class >= 4:
-            target = legal.min_bet_to
-            if target is not None and target <= legal.max_raise_to:
-                return Action.bet_to(target)
+        if legal.can_bet:
+            strong_draw = hand_class == 0 and self._has_strong_draw(cards)
+            if hand_class >= 2 or strong_draw:
+                target = self._postflop_bet_target(
+                    obs, legal, hand_class, strong_draw
+                )
+                if target is not None:
+                    return Action.bet_to(target)
 
         if legal.can_call:
-            # Approximate strength-to-equity mapping; deliberately conservative.
             estimated_strength = self._postflop_strength(hand_class)
             pot_odds = self._pot_odds(obs.pot, obs.to_call)
+            spr = self._spr(obs)
+            if spr <= 2.0 and hand_class >= 1:
+                return Action.call()
             if pot_odds <= estimated_strength * 0.85:
                 return Action.call()
 
         return self._passive_fallback(context)
+
+    @staticmethod
+    def _preflop_raise_target(
+        obs: PlayerView, legal: Any, effective_strength: float
+    ) -> int | None:
+        if obs.current_bet <= 0:
+            return None
+        # Estimate 3x when opening and 3x-4x the amount to call when 3-betting.
+        position_factor = 0.25 if obs.position.upper() == "BTN" else 0.50
+        strength_factor = max(0.0, effective_strength - 0.67)
+        multiplier = 3.0 + position_factor * strength_factor
+        target = round(obs.current_bet * multiplier)
+        return RuleBasedAgent._clamp_raise_target(target, legal)
+
+    @staticmethod
+    def _postflop_raise_target(
+        obs: PlayerView, legal: Any, hand_class: int
+    ) -> int | None:
+        fraction = 0.65 if hand_class >= 6 else 0.45
+        target = obs.current_bet + max(legal.min_raise_to - obs.current_bet, 1)
+        if obs.pot > 0:
+            target = round(obs.current_bet + obs.pot * fraction)
+        return RuleBasedAgent._clamp_raise_target(target, legal)
+
+    @staticmethod
+    def _postflop_bet_target(
+        obs: PlayerView,
+        legal: Any,
+        hand_class: int,
+        strong_draw: bool,
+    ) -> int | None:
+        minimum = legal.min_bet_to
+        if minimum is None:
+            return None
+
+        if strong_draw:
+            fraction = 0.45
+        elif hand_class >= 6:
+            fraction = 0.75
+        elif hand_class >= 4:
+            fraction = 0.65
+        elif hand_class >= 3:
+            fraction = 0.55
+        else:
+            fraction = 0.40
+
+        street = obs.street.lower()
+        if street == "turn":
+            fraction += 0.05
+        elif street == "river":
+            fraction += 0.10
+
+        target = round(max(minimum, obs.pot * fraction))
+        target = max(minimum, min(target, legal.max_raise_to))
+        if target >= minimum:
+            return target
+        return None
+
+    @staticmethod
+    def _clamp_raise_target(target: int, legal: Any) -> int | None:
+        minimum = legal.min_raise_to
+        if minimum is None:
+            return None
+        target = max(minimum, min(target, legal.max_raise_to))
+        if target >= minimum:
+            return target
+        return None
+
+    @staticmethod
+    def _spr(obs: PlayerView) -> float:
+        if obs.pot <= 0:
+            return float(obs.stack)
+        return obs.stack / obs.pot
+
+    @staticmethod
+    def _has_strong_draw(cards: tuple[Any, ...]) -> bool:
+        """Detect a flush draw or an open-ended/major straight draw."""
+        suits = Counter(card.suit for card in cards)
+        if max(suits.values(), default=0) >= 4:
+            return True
+
+        ranks = sorted(set(int(card.rank) for card in cards))
+        expanded = set(ranks)
+        if 14 in expanded:
+            expanded.add(1)
+        for high in range(5, 15):
+            window = set(range(high - 4, high + 1))
+            missing = window - expanded
+            if len(missing) == 2:
+                # Open-ended-style draw: either end can complete the run.
+                low_missing = (high - 4) in missing
+                high_missing = high in missing
+                if low_missing or high_missing:
+                    return True
+        return False
 
     @staticmethod
     def _evaluate_preflop(cards: Iterable[Any]) -> float:

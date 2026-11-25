@@ -26,7 +26,7 @@ function App() {
   const [stack, setStack] = useState(1000)
   const [smallBlind, setSmallBlind] = useState(5)
   const [bigBlind, setBigBlind] = useState(10)
-  const [aiConfigs, setAIConfigs] = useState<AIConfig[]>(Array.from({length: 8}, (_, i) => ({ type: 'rule', provider: 'gemini', model: 'gemini-2.5-flash', name: `AI ${i + 1}` })))
+  const [aiConfigs, setAIConfigs] = useState<AIConfig[]>(Array.from({length: 8}, (_, i) => ({ type: 'rule', provider: 'gemini', model: 'gemini-2.5-flash', name: `Rule ${i + 1}` })))
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [game, setGame] = useState<EventData | null>(null)
   const [busy, setBusy] = useState(false)
@@ -118,12 +118,14 @@ function App() {
   const boundedMin = Math.max(1, minAmount)
   const boundedMax = Math.max(boundedMin, maxAmount)
   const clampedAmount = Math.min(Math.max(Math.trunc(Number(amount) || boundedMin), boundedMin), boundedMax)
+  const potBasedRaiseTo = (fraction: number) => Math.round((game?.current_bet || 0) + ((game?.pot || 0) + (game?.to_call || 0)) * fraction)
   const amountPresets = [
-    { label: '最小', value: boundedMin },
-    { label: '中間', value: Math.round(boundedMin + (boundedMax - boundedMin) * 0.5) },
-    { label: '大きめ', value: Math.round(boundedMin + (boundedMax - boundedMin) * 0.75) },
+    { label: '1/2ポット', value: potBasedRaiseTo(0.5) },
+    { label: '3/4ポット', value: potBasedRaiseTo(0.75) },
+    { label: 'ポット', value: potBasedRaiseTo(1) },
     { label: '最大', value: boundedMax },
-  ].filter((preset, index, all) => all.findIndex(item => item.value === preset.value) === index)
+  ].map(preset => ({ ...preset, value: Math.min(Math.max(preset.value, boundedMin), boundedMax) }))
+    .filter((preset, index, all) => all.findIndex(item => item.value === preset.value) === index)
 
   return <main className="app-shell">
     <header className="topbar"><div><div className="eyebrow">NO-LIMIT HOLD’EM · PRACTICE TABLE</div><h1>テーブル</h1></div><div className="status-pill"><i/> {notice}</div></header>
@@ -140,7 +142,7 @@ function App() {
         <p>各席のAIタイプを選択できます。LLMを選ぶ場合は、サーバー側にAPIキーを設定してください。</p>
         {aiConfigs.slice(0, count - 1).map((config, index) => <div className="ai-config-row" key={index}>
           <b>席 {index + 2}</b>
-          <label>プレイヤー<select value={config.type} onChange={e=>setAIConfigs(prev=>prev.map((v,i)=>i===index?{...v,type:e.target.value as AIConfig['type']}:v))}>
+          <label>プレイヤー<select value={config.type} onChange={e=>setAIConfigs(prev=>prev.map((v,i)=>i===index?{...v,type:e.target.value as AIConfig['type'],name:`${e.target.value==='rule'?'Rule':e.target.value==='random'?'Random':v.provider==='gemini'?'Gemini':'OpenAI'} ${i+1}`}:v))}>
             <option value="rule">Rule-based</option><option value="random">Random</option><option value="llm">生成AI（LLM）</option>
           </select></label>
           {config.type === 'llm' && <>
@@ -170,7 +172,7 @@ function App() {
             const y = 50 + Math.sin(angle)*42
             return <div key={p.player_id} className={`seat ai-seat ${p.folded?'is-folded':''} ${p.action_status==='ACTED'?'has-acted':''}`} style={{left:`${x}%`,top:`${y}%`}}>
               <div className="avatar">{p.name.slice(0,1)}{p.is_button && <small className="dealer-marker">D</small>}</div>
-              <div className="seat-info"><b>{p.name} <i className="position-tag">{p.position || '—'}</i></b><span>{p.stack.toLocaleString()} chips</span><span className="seat-status">{p.action_status || '—'}{p.last_action ? ` · ${p.last_action.toUpperCase()}` : ''}</span>{p.street_bet > 0 && <em>BET {p.street_bet.toLocaleString()}</em>}</div>
+              <div className="seat-info"><b>{p.name} <i className="position-tag">{p.position || '—'}</i></b><span className="play-style">{p.player_type === 'llm' ? '生成AI' : (aiConfigs[p.seat - 1]?.type === 'random' ? 'ランダム' : 'ルールベース')}</span><span>{p.stack.toLocaleString()} chips</span><span className="seat-status">{p.action_status || '—'}{p.last_action ? ` · ${p.last_action.toUpperCase()}` : ''}</span>{p.street_bet > 0 && <em>BET {p.street_bet.toLocaleString()}</em>}</div>
               <div className="mini-cards">{[0,1].map(i=><Card key={i} code={lastResult?.revealed_hole_cards?.[p.player_id]?.[i]} hidden={!lastResult?.revealed_hole_cards?.[p.player_id]}/>)}</div>
             </div>
           })}

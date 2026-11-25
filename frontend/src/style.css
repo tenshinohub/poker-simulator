@@ -6,10 +6,13 @@
 .dealer-marker{position:absolute;right:-5px;top:-5px;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;background:#f3e3a2;color:#332a13;border:1px solid #8b7740;font:800 9px 'DM Mono',monospace}
 .avatar{position:relative}
 .seat-status{font:8px 'DM Mono',monospace!important;color:#d9c18c!important;white-space:nowrap}
+.play-style{align-self:flex-start;padding:1px 5px;border-radius:8px;background:#2c4939;color:#a9e5b9!important;font-size:8px!important;line-height:1.4}
 .seat em{font-size:8px!important}
 .ai-seat.has-acted{border-color:#8bc7a0;box-shadow:0 0 0 1px #8bc7a055,0 5px 14px #0005}
 .human-seat{min-width:220px}
 @media(max-width:760px){.human-seat{min-width:185px}.seat-status{font-size:7px!important}.position-tag{font-size:7px}}
+.mini-cards .playing-card{width:25px;height:35px;font-size:11px}
+.mini-cards .playing-card span{font-size:12px;line-height:12px}
 
 .showdown-choice{margin-top:14px;padding:14px;background:#263d30;border:1px solid #64866d;border-radius:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.showdown-choice b{width:100%;font-size:13px}.showdown-choice p{width:100%;margin:0 0 4px;color:#b5cabb;font-size:11px;line-height:1.6}.showdown-choice button:not(.primary){border:1px solid #789080;border-radius:8px;background:#182820;color:#e2eee5;padding:11px 18px;cursor:pointer}.showdown-choice button:disabled{opacity:.4;cursor:not-allowed}
 
